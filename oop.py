@@ -109,12 +109,178 @@ class Screen(object):
 	    return self._width * self._height
 	
 # 测试:
-s = Screen()
-s.width = 1024
-s.height = 768
-print('resolution =', s.resolution)
-if s.resolution == 786432:
+# s = Screen()
+# s.width = 1024
+# s.height = 768
+# print('resolution =', s.resolution)
+# if s.resolution == 786432:
+#     print('测试通过!')
+# else:
+#     print('测试失败!')
+
+######################### 定制类 #########################
+
+### __str__ ###
+class Student(object):
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return 'Student object (name: %s)' % self.name
+
+	__repr__ = __str__
+
+# 测试
+s = Student('Xin')
+print(s)
+
+### __iter__ ###
+class Fib(object):
+	def __init__(self):
+		self.a, self.b = 0, 1
+
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		self.a, self.b = self.b, self.a + self.b
+		if self.a > 100000:
+			raise StopIteration()
+		return self.a
+
+	def __getitem__(self, n):
+		if isinstance(n, int): # 如果n是索引
+			a, b = 1, 1
+			for x in range(n):
+				a, b = b, a + b
+			return a	
+		elif isinstance(n, slice): # 如果n是切片
+			start = n.start
+			stop = n.stop
+			if start is None:
+				start = 0
+			a, b = 1, 1
+			L = []
+			for x in range(stop):
+				if x >= start:
+					L.append(a)
+				a, b = b, a + b
+			return L
+		
+
+# 测试
+# for x in Fib():
+# 	print(x)
+
+### __getitem__ ###
+
+# 测试
+# f = Fib()
+# print(f[0])
+# print(f[1])
+# print(f[2])
+# print(f[12])
+
+# print(f[2:5])
+
+### __getattr__ ###
+class Chain(object):
+	def __init__(self, path=''):
+		self._path = path
+	
+	def __getattr__(self, path):
+		return Chain('%s/%s' % (self._path, path))
+
+	def __str__(self):
+		return self._path
+
+	__repr__ = __str__
+
+c = Chain()
+print(c.status.user.timeline.list)
+print(c._path)
+
+### __call__ ###
+class Student(object):
+	def __init__(self, name):
+		self.name = name
+
+	def __call__(self):
+		print('My name is %s' % self.name)
+
+s = Student('Xin')
+s()
+
+print(callable(s))
+print(callable(max))
+print(callable([1, 2, 3]))
+print(callable('str'))
+
+######################### 枚举类 #########################
+
+from enum import Enum, unique
+@unique
+class Gender(Enum):
+	Male = 0
+	Female = 1
+
+class Student(object):
+	def __init__(self, name, gender):
+		self.name = name
+		self.gender = gender
+
+	@property
+	def gender(self):
+	    return self._gender
+
+	@gender.setter
+	def gender(self, value):
+		if not isinstance(value, Gender):
+			raise TypeError('value must be Gender enum!')
+		self._gender = value
+
+	def __str__(self):
+		return 'name: %s, gender: %s' %(self.name, self.gender)
+	__repr__ = __str__
+
+# 测试:
+bart = Student('Bart', Gender.Male)
+if bart.gender == Gender.Male:
     print('测试通过!')
 else:
     print('测试失败!')
+
+######################### 元类 #########################
+
+### type() ###
+
+def fn(self, name='world...'):
+	print('hello, ', name)
+
+Person = type('Person', (object, ), dict(say = fn)) # 动态创建类
+
+p1 = Person()
+p1.say()
+
+######################### metaclass #########################
+
+# metaclass是类的模板，所以必须从`type`类型派生，metaclass的类名总是以Metaclass结尾：
+class ListMetaclass(type):
+	def __new__(cls, name, bases, attrs):
+		attrs['add'] = lambda self, value: self.append(value)
+		return type.__new__(cls, name, bases, attrs)
+
+class MyList(list, metaclass = ListMetaclass):
+	pass
+
+l1 = MyList()
+l1.add(1)
+l1.append(2)
+print(l1)
+
+l2 = list()
+l2.add(2)
+print(l2)
+		
+
 
