@@ -4,7 +4,7 @@
 import os
 import re
 
-re_chinese = re.compile(u'"[\u4e00-\u9fa5]+"')
+re_chinese = re.compile(u'".*[\u4e00-\u9fa5]+.*"')
 
 def absPath():
 	return os.path.abspath('.')
